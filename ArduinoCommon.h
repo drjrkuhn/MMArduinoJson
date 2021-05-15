@@ -6,7 +6,7 @@ Common helper libraries for the Arduino
 
 /**
 \ingroup	ArduinoCommon
-\file		Common.h
+\file		ArduinoCommon.h
 \brief		Defines a Stream class backed by a String object
 \date		2016
 \author		Jeffrey R. Kuhn <drjrkuhn@gmail.com>

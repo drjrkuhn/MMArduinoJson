@@ -1,6 +1,6 @@
 /**
 \ingroup	ArduinoCommon
-\file		DebugPrint.h
+\file		ArduinoDebugPrint.h
 \brief		Can output extra debugging to a Print class
 \date		2016
 \author		Jeffrey R. Kuhn <drjrkuhn@gmail.com>

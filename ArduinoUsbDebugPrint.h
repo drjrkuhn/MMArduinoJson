@@ -1,6 +1,6 @@
 /**
 \ingroup	ArduinoCommon
-\file		UsbDebugPrint.h
+\file		ArduinoUsbDebugPrint.h
 \brief		Extra debugging information for USB Host Shield Library
 \date		2016
 \author		Jeffrey R. Kuhn <drjrkuhn@gmail.com>

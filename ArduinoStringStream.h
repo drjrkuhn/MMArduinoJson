@@ -1,6 +1,6 @@
 /**
 \ingroup	ArduinoCommon
-\file		StringStream.h
+\file		ArduinoStringStream.h
 \brief		Defines a Stream class backed by a String object
 \date		2016
 \author		Jeffrey R. Kuhn <drjrkuhn@gmail.com>
