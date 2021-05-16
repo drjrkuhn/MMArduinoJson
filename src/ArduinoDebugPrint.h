@@ -17,7 +17,7 @@ $Date: 2016-01-22 17:55:57 -0600 (Fri, 22 Jan 2016) $
 
 #include <Stream.h>
 #include <avr/pgmspace.h>
-#include "../AsciiCodes.h"
+#include "AsciiCodes.h"
 #include <stdio.h> // for size_t
 #include <HardwareSerial.h>
 
@@ -110,7 +110,7 @@ public:
 
 	/** Constructor.
 	@param __out Stream object to output to
-	@param __disabled initially printing. */
+	*/
 	DebugPrint(Stream& __out)
 		: out_(__out), disabled_(false), logCount_(0), logEndl_(false), flushLogEvery_(0), logSeparator_("; ") {}
 

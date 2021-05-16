@@ -405,12 +405,20 @@ if every command chain is enclosed in a test clause.
 
 #include "AsciiCodes.h"
 
+
+#if defined(__AVR__) || defined(__AVR) || defined(AVR) || defined(TEENSYDUINO)
+#define AVR_COMPILER	1
+#else
+#define HOST_COMPILER	1
+#endif
+
+
 //////////////////////////////////////////////////////////////////////////
 /// \name common access to standard integer types, uint8_t, etc.
 /// \ingroup	HexProtocol 
 ///@{
 
-#ifdef __AVR__
+#if defined(AVR_COMPILER)
 #include <Arduino.h>
 #include <stdint.h>
 #include <stdio.h> // for size_t
@@ -418,13 +426,9 @@ if every command chain is enclosed in a test clause.
 without namespace std, so we define std as blank here to use the global
 address space ::uint8_t, etc on the avr side */
 #define std						
-#else // NOT #ifdef __AVR__
-
-
-
+#else // NOT #ifdef AVR_COMPILER
 #include <cstdint>
-#endif // #ifdef __AVR__
-
+#endif // #ifdef AVR_COMPILER
 
 
 ///@}
@@ -454,18 +458,18 @@ namespace hprot {
 	methods will use whichever native size_t is defined */
 	typedef std::uint16_t prot_size_t;
 
-#ifdef __AVR__
+#if defined(AVR_COMPILER)
 	/** protocol strings are usually StringObject on the arduino side. */
 	typedef String prot_string_t;
-#else // NOT #ifdef __AVR__
-
-
-
+#else // NOT AVR_COMPILER
 	/** protocol strings are std::string on the host side */
 	typedef std::string prot_string_t;
-#endif // #ifdef __AVR__
+#endif // #ifdef AVR_COMPILER
 
-
+#if defined(TEENSYDUINO)
+#define _ltoa	ltoa
+#define _ultoa	ultoa
+#endif
 
 	///@}
 	//////////////////////////////////////////////////////////////////////////
@@ -519,7 +523,7 @@ namespace hprot {
 	///////////////////////////////////////////////////////////////////
 
 
-#ifdef __AVR__
+#ifdef AVR_COMPILER
 	//////////////////////////////////////////////////////////////
 	/// \name long, unsigned long, and float to/from strings
 	/// \ingroup	HexProtocol 
@@ -568,7 +572,7 @@ inline double prot_strtof(const char* __str) {
 
 	///@}
 
-#else // NOT #ifdef __AVR__
+#else // NOT #ifdef AVR_COMPILER
 
 
 
@@ -913,11 +917,11 @@ inline char* prot_ftostr(float __val, char* __buf, size_t __size, unsigned char 
 				if (!__prot->template getValue<prot_ulong_t>(temp)) {
 					return false;
 				}
-				__val = *reinterpret_cast<prot_float_t*>(&temp);
+				//// reinterpret_cast can violate aliasing rules. Instead, we us a memcpy to set the value
+				//__val = *reinterpret_cast<prot_float_t*>(&temp);
+				memcpy(&__val, &temp, sizeof(prot_float_t));
 				return true;
 #else // NOT #ifdef PROT_FLOAT_IEEE754
-
-
 
 				// store buffer on the stack
 				char buf[PROT_FLOAT_BUFF_SIZE ];
@@ -1035,7 +1039,12 @@ inline char* prot_ftostr(float __val, char* __buf, size_t __size, unsigned char 
 			static bool call(HexProtocolBase<DD, SS>* __prot, prot_float_t __val) {
 #ifdef PROT_FLOAT_IEEE754
 				/** The BIG assumption is that floats are IEEE-754 on both sides of the transfer. */
+#if 1
+				prot_ulong_t temp;
+				memcpy(&temp, &__val, sizeof(prot_ulong_t));
+#else
 				prot_ulong_t temp = *reinterpret_cast<prot_ulong_t*>(&__val);
+#endif
 				return __prot->template putValue<prot_ulong_t>(temp);
 #else // NOT #ifdef PROT_FLOAT_IEEE754
 				// store buffer on the stack

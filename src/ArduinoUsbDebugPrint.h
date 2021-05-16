@@ -15,7 +15,7 @@ $Date: 2016-01-24 18:28:13 -0600 (Sun, 24 Jan 2016) $
 
 #pragma once
 
-#include "DebugPrint.h"
+#include "ArduinoDebugPrint.h"
 #include <UsbCore.h>
 
 //////////////////////////////////////////////////////////

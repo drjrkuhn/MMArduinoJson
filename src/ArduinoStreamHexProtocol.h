@@ -1,22 +1,22 @@
 /**
-\defgroup	StreamHexProtocol	Hexadecimal Protocol, Stream (Slave)
+\defgroup	ArduinoStreamHexProtocol	Hexadecimal Protocol, Stream (Slave)
 
 Implements HexProtocolBase on the Arduino side.
 */
 
 /**
-\ingroup StreamHexProtocol
+\ingroup ArduinoStreamHexProtocol
 
-\page ExampleStreamHexProtocol StreamHexProtocol Example
+\page ExampleStreamHexProtocol ArduinoStreamHexProtocol Example
 
-StreamHexProtocol implements a HexProtocolBase on the slave (Arduino/Genuino)
+ArduinoStreamHexProtocol implements a HexProtocolBase on the slave (Arduino/Genuino)
 side. It uses a pointer to a Stream object for reading and writing. Most likely, 
 the Stream* will point to the global Serial object defined in "HardwareSerial.h". 
 
-The easiest way to use the StreamHexProtocol is by deriving a Handler class from it.
+The easiest way to use the ArduinoStreamHexProtocol is by deriving a Handler class from it.
 
 \code{.cpp}
-class MyHandler : public StreamHexProtocol<MyHandler> {
+class MyHandler : public ArduinoStreamHexProtocol<MyHandler> {
 	void doProcessCommand(prot_cmd_t __cmd)	{
 		switch (__cmd) {
 		case GET_VALUE:
@@ -65,14 +65,14 @@ void loop()
 */
 
 /**
-\ingroup	StreamHexProtocol
-\file		StreamHexProtocol.h
+\ingroup	ArduinoStreamHexProtocol
+\file		ArduinoStreamHexProtocol.h
 \brief		Standard Arduino-side HexProtocol implementation
 \date		2016
 \author		Jeffrey R. Kuhn <drjrkuhn@gmail.com>
 \copyright	The University of Texas at Austin
 
-$Id: StreamHexProtocol.h 450 2016-01-29 22:57:23Z jkuhn $
+$Id: ArduinoStreamHexProtocol.h 450 2016-01-29 22:57:23Z jkuhn $
 $Author: jkuhn $
 $Revision: 450 $
 $Date: 2016-01-29 16:57:23 -0600 (Fri, 29 Jan 2016) $
@@ -81,12 +81,12 @@ $Date: 2016-01-29 16:57:23 -0600 (Fri, 29 Jan 2016) $
 
 #pragma once
 
-#include "..\HexProtocol.h"
+#include "HexProtocol.h"
 #include "Stream.h"
 
-/** \ingroup StreamHexProtocol
+/** \ingroup ArduinoStreamHexProtocol
 	Arduino pin that goes high during Serial sends or receives. Set to 0 for no diagnostic pin */
-#define HEXPROT_SNDRCV_PIN		49
+#define HEXPROT_SNDRCV_PIN		0
 
 #if (HEXPROT_SNDRCV_PIN > 0)
 #define SETUP_SNDRCV_PIN	pinMode(HEXPROT_SNDRCV_PIN, OUTPUT)
@@ -100,24 +100,24 @@ $Date: 2016-01-29 16:57:23 -0600 (Fri, 29 Jan 2016) $
 
 namespace hprot {
 
-	/** \ingroup StreamHexProtocol 
+	/** \ingroup DeviceHexProtocol
 		The Arduino library Stream class is the base for character and binary based streams. 
 	*/
 	typedef Stream* STREAM_T;
 
 	/**
 		Implements HexProtocolBase on the Arduino side.
-		\ingroup StreamHexProtocol
+		\ingroup ArduinoStreamHexProtocol
 	*/
 	template <class DEV>
-	class StreamHexProtocol : public HexProtocolBase<DEV, STREAM_T> {
+	class ArduinoStreamHexProtocol : public HexProtocolBase<DEV, STREAM_T> {
 	public:
 
-		StreamHexProtocol() {
+		ArduinoStreamHexProtocol() {
 			SETUP_SNDRCV_PIN;
 		}
 
-		virtual ~StreamHexProtocol() {}
+		virtual ~ArduinoStreamHexProtocol() {}
 
 	protected:
 		typedef HexProtocolBase<DEV, STREAM_T> BaseClass;
@@ -230,7 +230,7 @@ namespace hprot {
 			size_t len = strlen_P(__str_P);
 			size_t bytesWritten = 0;
 			prot_byte_t ch;
-			while (ch =  pgm_read_byte(__str_P++)) {
+			while ((ch =  pgm_read_byte(__str_P++))) {
 				if (!writeByte(ch)) {
 					break;
 				}
@@ -284,7 +284,7 @@ namespace hprot {
 #if defined(INSTANTIATE_STREAMHEXPROTOCOL_CPP) || defined(INSTANTIATE_ALL)
 
 //### 
-//### StreamHexProtocol is a template base class using CRTP. 
+//### ArduinoStreamHexProtocol is a template base class using CRTP. 
 //### So nothing to INSTANTIATE
 //### 
 
