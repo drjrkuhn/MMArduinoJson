@@ -1,6 +1,5 @@
 # MMArduinoHProt [![Build Status](https://travis-ci.com/drjrkuhn/MMArduinoHProt.svg?branch=master)](https://travis-ci.com/drjrkuhn/MMArduinoHProt)
 
-
 Micro-Manager Arduino Device Driver using a low-latency communication protocol.
 
 This library uses C++11 templates extensively. The default Visual Studio 2010 install doesn't work. 
