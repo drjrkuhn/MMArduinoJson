@@ -257,9 +257,9 @@ NOTES on IEEE-754 floating point values
 -----------------------------------------------------------------------------
 
 If PROT_FLOAT_IEEE754 is defined, floats will be sent as 32-bit binary
-values (8 hex digits). The AVR stores floats and doubles as single-precision
-32-bit IEEE-754. The host must support single-precision IEEE-754 format
-as well.
+values (8 hex digits) using type punning. The AVR stores floats and doubles as 
+single-precision 32-bit IEEE-754. The host must support single-precision IEEE-754 
+format as well.
 
 If PROT_FLOAT_IEEE754 is undefined, floats will be sent as long text
 strings using the "exponential" `-1.2345678e+090` representation.
@@ -405,11 +405,14 @@ if every command chain is enclosed in a test clause.
 
 #include "AsciiCodes.h"
 
+#define FLOAT_CAST_FIX	1
 
 #if defined(__AVR__) || defined(__AVR) || defined(AVR) || defined(TEENSYDUINO)
 #define AVR_COMPILER	1
+#define FLOAT_ALIGN		__attribute__((aligned(4)))
 #else
 #define HOST_COMPILER	1
+#define FLOAT_ALIGN
 #endif
 
 
@@ -479,7 +482,7 @@ namespace hprot {
 	/// \ingroup	HexProtocol 
 	///@{
 
-#define PROT_FLOAT_IEEE754									///< \c \#undef to pass floats as numeric text strings
+//#define PROT_FLOAT_IEEE754									///< \c \#undef to pass floats as numeric text strings
 
 #define PROT_ERROR				ASCII_NAK					///< protocol error command
 #define PROT_TERM_CHAR			ASCII_EOT					///< all transmissions end in an ASCII EOT character
@@ -504,13 +507,11 @@ namespace hprot {
 
 #else // NOT #ifdef PROT_FLOAT_IEEE754
 
-
-
 	/** Default precision for textual floating point numbers. Only used by the protocol when PROT_FLOAT_IEEE754 is not defined. */
-	const int PROT_FLOAT_MAX_PREC = 7;
+	const int PROT_FLOAT_MAX_PREC = 9; //7;
 
 	/**A little extra length for safety. Only used by the protocol when PROT_FLOAT_IEEE754 is not defined. */
-	const int PROT_DEC_FLOAT_EXTRA = 4;
+	const int PROT_DEC_FLOAT_EXTRA = 6; //4;
 
 	/** Maximum prot_float_t hex digits in protocol. Maximum length for textual floating point numbers. Only used by the protocol when PROT_FLOAT_IEEE754 is not defined. */
 	const size_t PROT_FLOAT_BUFF_SIZE = 3 + PROT_FLOAT_MAX_PREC + 5 + PROT_DEC_FLOAT_EXTRA;
@@ -558,7 +559,11 @@ inline char* prot_ftostr(float __val, char* __buf, size_t __size, unsigned char 
 	if (__prec > PROT_FLOAT_MAX_PREC) {
 		__prec = PROT_FLOAT_MAX_PREC ;
 	}
+#if 0
 	return dtostre(__val, __buf, __prec, 0);
+#else
+	return dtostrf(__val, PROT_FLOAT_BUFF_SIZE, __prec, __buf);
+#endif
 }
 
 	/** Helper to convert text to float (1.234e56). Uses avr libc version of atof. */
@@ -917,9 +922,18 @@ inline char* prot_ftostr(float __val, char* __buf, size_t __size, unsigned char 
 				if (!__prot->template getValue<prot_ulong_t>(temp)) {
 					return false;
 				}
+#if FLOAT_CAST_FIX
+				union {
+					std::uint32_t lval;
+					std::float_t fval;
+				} utemp FLOAT_ALIGN;
+
+				utemp.lval = temp;
+				__val = utemp.fval;
+#else
 				//// reinterpret_cast can violate aliasing rules. Instead, we us a memcpy to set the value
-				//__val = *reinterpret_cast<prot_float_t*>(&temp);
-				memcpy(&__val, &temp, sizeof(prot_float_t));
+				__val = *(reinterpret_cast<prot_float_t*>(&temp));
+#endif
 				return true;
 #else // NOT #ifdef PROT_FLOAT_IEEE754
 
@@ -1039,11 +1053,15 @@ inline char* prot_ftostr(float __val, char* __buf, size_t __size, unsigned char 
 			static bool call(HexProtocolBase<DD, SS>* __prot, prot_float_t __val) {
 #ifdef PROT_FLOAT_IEEE754
 				/** The BIG assumption is that floats are IEEE-754 on both sides of the transfer. */
-#if 1
-				prot_ulong_t temp;
-				memcpy(&temp, &__val, sizeof(prot_ulong_t));
+#if FLOAT_CAST_FIX
+				union {
+					std::uint32_t lval;
+					std::float_t fval;
+				} utemp FLOAT_ALIGN;
+				utemp.fval = 123.0f; //__val;
+				prot_ulong_t temp = utemp.lval;
 #else
-				prot_ulong_t temp = *reinterpret_cast<prot_ulong_t*>(&__val);
+				prot_ulong_t temp = *(reinterpret_cast<prot_ulong_t*>(&__val));
 #endif
 				return __prot->template putValue<prot_ulong_t>(temp);
 #else // NOT #ifdef PROT_FLOAT_IEEE754
